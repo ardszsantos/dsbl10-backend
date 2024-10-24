@@ -1,6 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Post } from 'src/modules/post/entities/post/post';
 import { User } from 'src/modules/user/entities/user/user';
 
 export const getDatabaseConfig = (): TypeOrmModuleOptions => {
@@ -11,7 +12,7 @@ export const getDatabaseConfig = (): TypeOrmModuleOptions => {
     username: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [User],
+    entities: [User, Post],
     synchronize: true, // Set to false in production
     ssl: {
       ca: process.env.DB_CA_CERT,
