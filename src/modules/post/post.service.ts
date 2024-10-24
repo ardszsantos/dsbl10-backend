@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post/post';
@@ -34,13 +34,12 @@ export class PostService {
     return this.postRepository.save(post);
   }
 
-  
   findAll() {
     return this.postRepository.find({
       relations: ['author'],  // Include the author (user) relationship
     });
   }
-  
+
   findOne(id: number) {
     return this.postRepository.findOne({
       where: { id },
@@ -48,11 +47,44 @@ export class PostService {
     });
   }
 
-  update(id: number, updatePostDto: UpdatePostDto) {
-    return this.postRepository.update(id, updatePostDto);
+  // Updated update method with ownership check
+  async update(id: number, updatePostDto: UpdatePostDto, userId: number): Promise<Post> {
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['author'],  // Load the author to check ownership
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    // Check if the current user is the author of the post
+    if (post.author.id !== userId) {
+      throw new ForbiddenException("You are not allowed to edit this post");
+    }
+
+    // Update the post with new data
+    Object.assign(post, updatePostDto);
+    return this.postRepository.save(post);  // Save the updated post
   }
 
-  remove(id: number) {
-    return this.postRepository.delete(id);
+  // Updated remove method with ownership check
+  async remove(id: number, userId: number): Promise<void> {
+    const post = await this.postRepository.findOne({
+      where: { id },
+      relations: ['author'],  // Load the author to check ownership
+    });
+
+    if (!post) {
+      throw new NotFoundException(`Post with id ${id} not found`);
+    }
+
+    // Check if the current user is the author of the post
+    if (post.author.id !== userId) {
+      throw new ForbiddenException("You are not allowed to delete this post");
+    }
+
+    // Proceed with deletion if the user is the author
+    await this.postRepository.remove(post);
   }
 }
