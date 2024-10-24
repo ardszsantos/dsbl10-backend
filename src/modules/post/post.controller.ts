@@ -18,7 +18,7 @@ export class PostController {
   @ApiResponse({ status: 201, description: 'Post created successfully' })
   @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() createPostDto: CreatePostDto, @Req() req: AuthenticatedRequest) {
-    const userId = req.user.id;
+    const userId = req.user.id;  // Extract userId from authenticated request
     return this.postService.create(createPostDto, userId);
   }
 
@@ -44,8 +44,10 @@ export class PostController {
   @ApiParam({ name: 'id', description: 'ID of the post to update' })  // Defining the ID parameter in Swagger
   @ApiResponse({ status: 200, description: 'Post updated successfully' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto) {
-    return this.postService.update(+id, updatePostDto);
+  @ApiResponse({ status: 403, description: 'Forbidden' })  // Add 403 Forbidden response
+  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto, @Req() req: AuthenticatedRequest) {
+    const userId = req.user.id;  // Extract userId from the request
+    return this.postService.update(+id, updatePostDto, userId);  // Pass userId to the service
   }
 
   @UseGuards(JwtAuthGuard)
@@ -54,7 +56,9 @@ export class PostController {
   @ApiParam({ name: 'id', description: 'ID of the post to delete' })  // Defining the ID parameter in Swagger
   @ApiResponse({ status: 200, description: 'Post deleted successfully' })
   @ApiResponse({ status: 404, description: 'Post not found' })
-  remove(@Param('id') id: string) {
-    return this.postService.remove(+id);
+  @ApiResponse({ status: 403, description: 'Forbidden' })  // Add 403 Forbidden response
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    const userId = req.user.id;  // Extract userId from the request
+    return this.postService.remove(+id, userId);  // Pass userId to the service
   }
 }
