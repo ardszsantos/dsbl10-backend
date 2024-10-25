@@ -3,21 +3,21 @@ import { User } from '../../../user/entities/user/user';
 
 @Entity()
 export class Post {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column()
-  title: string;
+    @Column()
+    title: string;
 
-  @Column({ type: 'text' })
-  content: string;
+    @Column({ type: 'longtext' })  // Changed from 'text' to 'longtext' for MySQL
+    content: string;
 
-  @CreateDateColumn()
-  createdAt: Date;
+    @CreateDateColumn()
+    createdAt: Date;
 
-  @UpdateDateColumn()
-  updatedAt: Date;
+    @UpdateDateColumn()
+    updatedAt: Date;
 
-  @ManyToOne(() => User, (user) => user.posts, { eager: false })  // This defines the relationship
-  author: User;
+    @ManyToOne(() => User, user => user.posts, { eager: false })
+    author: User;
 }
