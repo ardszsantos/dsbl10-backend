@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, Req, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto/update-post.dto';
@@ -6,59 +6,52 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { AuthenticatedRequest } from 'src/types/express-request.interface';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 
-@ApiTags('posts')  // Grouping posts-related endpoints in Swagger
-@ApiBearerAuth()    // Requires Bearer token authentication
+@ApiTags('posts')
+@ApiBearerAuth()
 @Controller('posts')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @UseGuards(JwtAuthGuard)
+  @Delete('reset')  // Ensure this is before ':id'
+  @ApiOperation({ summary: 'Reset the posts table' })
+  @ApiResponse({ status: 200, description: 'Posts table has been reset.' })
+  resetPosts() {
+    return this.postService.resetPostsTable();
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Post()
-  @ApiOperation({ summary: 'Create a new post' })  // Description of this route
-  @ApiResponse({ status: 201, description: 'Post created successfully' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
   create(@Body() createPostDto: CreatePostDto, @Req() req: AuthenticatedRequest) {
-    const userId = req.user.id;  // Extract userId from authenticated request
+    const userId = req.user.id;
     return this.postService.create(createPostDto, userId);
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all posts' })  // Description of this route
-  @ApiResponse({ status: 200, description: 'List of all posts' })
   findAll() {
     return this.postService.findAll();
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a post by ID' })  // Description of this route
-  @ApiParam({ name: 'id', description: 'ID of the post to retrieve' })  // Defining the ID parameter in Swagger
-  @ApiResponse({ status: 200, description: 'Post found' })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  findOne(@Param('id') id: string) {
-    return this.postService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.postService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  @ApiOperation({ summary: 'Update a post' })  // Description of this route
-  @ApiParam({ name: 'id', description: 'ID of the post to update' })  // Defining the ID parameter in Swagger
-  @ApiResponse({ status: 200, description: 'Post updated successfully' })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })  // Add 403 Forbidden response
-  update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto, @Req() req: AuthenticatedRequest) {
-    const userId = req.user.id;  // Extract userId from the request
-    return this.postService.update(+id, updatePostDto, userId);  // Pass userId to the service
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updatePostDto: UpdatePostDto,
+    @Req() req: AuthenticatedRequest
+  ) {
+    const userId = req.user.id;
+    return this.postService.update(id, updatePostDto, userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  @ApiOperation({ summary: 'Delete a post' })  // Description of this route
-  @ApiParam({ name: 'id', description: 'ID of the post to delete' })  // Defining the ID parameter in Swagger
-  @ApiResponse({ status: 200, description: 'Post deleted successfully' })
-  @ApiResponse({ status: 404, description: 'Post not found' })
-  @ApiResponse({ status: 403, description: 'Forbidden' })  // Add 403 Forbidden response
-  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
-    const userId = req.user.id;  // Extract userId from the request
-    return this.postService.remove(+id, userId);  // Pass userId to the service
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: AuthenticatedRequest) {
+    const userId = req.user.id;
+    return this.postService.remove(id, userId);
   }
 }
