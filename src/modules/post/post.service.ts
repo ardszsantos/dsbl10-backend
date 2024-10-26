@@ -1,11 +1,3 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Post } from './entities/post/post';
-import { CreatePostDto } from './dto/create-post.dto/create-post.dto';
-import { UpdatePostDto } from './dto/update-post.dto/update-post.dto';
-import { User } from '../user/entities/user/user';
-
 @Injectable()
 export class PostService {
   constructor(
@@ -15,7 +7,6 @@ export class PostService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // Functionality to reset the posts table
   async resetPostsTable(): Promise<string> {
     await this.postRepository.clear();
     return 'Posts table has been reset.';
@@ -32,8 +23,23 @@ export class PostService {
     return this.postRepository.save(post);
   }
 
-  findAll() {
-    return this.postRepository.find({ relations: ['author'] });
+  async findAll(page: number = 1, limit: number = 10) {
+    const skip = (page - 1) * limit;
+
+    const [posts, total] = await this.postRepository.findAndCount({
+      relations: ['author'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const totalPages = Math.ceil(total / limit);
+
+    return {
+      posts,
+      totalPages,
+      currentPage: page,
+    };
   }
 
   async findOne(id: number) {
@@ -59,5 +65,5 @@ export class PostService {
 
     await this.postRepository.remove(post);
   }
-
 }
+

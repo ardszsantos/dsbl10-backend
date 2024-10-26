@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Req, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete, Patch, Req, UseGuards, ParseIntPipe, Query } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto/update-post.dto';
@@ -13,7 +13,7 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Delete('reset')  // Ensure this is before ':id'
+  @Delete('reset')
   @ApiOperation({ summary: 'Reset the posts table' })
   @ApiResponse({ status: 200, description: 'Posts table has been reset.' })
   resetPosts() {
@@ -28,8 +28,8 @@ export class PostController {
   }
 
   @Get()
-  findAll() {
-    return this.postService.findAll();
+  findAll(@Query('page') page: number, @Query('limit') limit: number) {
+    return this.postService.findAll(page, limit);
   }
 
   @Get(':id')
@@ -55,3 +55,4 @@ export class PostController {
     return this.postService.remove(id, userId);
   }
 }
+
