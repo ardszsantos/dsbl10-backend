@@ -1,5 +1,6 @@
 import { Post } from '../../../post/entities/post/post';
 import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
+import { Comment } from '../../../comments/entities/comment/comment';
 
 @Entity()
 @Unique(['email'])
@@ -19,4 +20,7 @@ export class User {
 
   @OneToMany(() => Post, (post) => post.author)
   posts: Post[];
+
+  @OneToMany(() => Comment, (comment) => comment.user)
+  comments: Comment[];
 }
