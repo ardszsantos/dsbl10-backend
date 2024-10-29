@@ -1,6 +1,7 @@
+import { Notification } from '../../../notifications/entities/notification/notification';
 import { Post } from '../../../post/entities/post/post';
-import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
 import { Comment } from '../../../comments/entities/comment/comment';
+import { Entity, PrimaryGeneratedColumn, Column, Unique, OneToMany } from 'typeorm';
 
 @Entity()
 @Unique(['email'])
@@ -23,4 +24,8 @@ export class User {
 
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
+
+  // New relationship to notifications
+  @OneToMany(() => Notification, (notification) => notification.user)
+  notifications: Notification[];
 }
