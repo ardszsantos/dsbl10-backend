@@ -1,29 +1,32 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { User } from '../../../user/entities/user/user';
-import { OneToMany } from 'typeorm';
+import { Notification } from '../../../notifications/entities/notification/notification';
 import { Comment } from '../../../comments/entities/comment/comment';
-
+import { User } from '../../../user/entities/user/user';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
 
 @Entity()
 export class Post {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    title: string;
+  @Column()
+  title: string;
 
-    @Column({ type: 'longtext' })  // Changed from 'text' to 'longtext' for MySQL
-    content: string;
+  @Column({ type: 'longtext' })
+  content: string;
 
-    @CreateDateColumn()
-    createdAt: Date;
+  @CreateDateColumn()
+  createdAt: Date;
 
-    @UpdateDateColumn()
-    updatedAt: Date;
+  @UpdateDateColumn()
+  updatedAt: Date;
 
-    @ManyToOne(() => User, user => user.posts, { eager: false })
-    author: User;
+  @ManyToOne(() => User, (user) => user.posts, { eager: false })
+  author: User;
 
-    @OneToMany(() => Comment, (comment) => comment.post)
-    comments: Comment[];
+  @OneToMany(() => Comment, (comment) => comment.post)
+  comments: Comment[];
+
+  // New relationship to notifications
+  @OneToMany(() => Notification, (notification) => notification.post)
+  notifications: Notification[];
 }
