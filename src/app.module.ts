@@ -8,6 +8,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostModule } from './modules/post/post.module';
 import { CommentsModule } from './modules/comments/comments.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { CommentsModule } from './modules/comments/comments.module';
     UsersModule,
     PostModule,
     CommentsModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
