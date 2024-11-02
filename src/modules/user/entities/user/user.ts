@@ -25,7 +25,6 @@ export class User {
   @OneToMany(() => Comment, (comment) => comment.user)
   comments: Comment[];
 
-  // New relationship to notifications
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
 }
