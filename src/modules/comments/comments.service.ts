@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +14,8 @@ import { NotificationService } from '../notifications/notifications.service';
 
 @Injectable()
 export class CommentsService {
+  private readonly logger = new Logger(CommentsService.name);
+
   constructor(
     @InjectRepository(Comment)
     private readonly commentsRepository: Repository<Comment>,
@@ -22,30 +25,41 @@ export class CommentsService {
     private readonly notificationService: NotificationService,
   ) {}
 
-  // Create a new comment and send notification
+  // src/modules/comments/comments.service.ts
   async create(createCommentDto: CreateCommentDto, userId: number): Promise<Comment> {
     const { content, postId } = createCommentDto;
 
-    // Find the post with its author
-    const post = await this.postRepository.findOne({ where: { id: postId }, relations: ['author'] });
+    // Find the post and ensure we get the author relationship
+    const post = await this.postRepository.findOne({
+      where: { id: postId },
+      relations: ['author'],
+    });
     if (!post) throw new NotFoundException(`Post with id ${postId} not found`);
+
+    // Log to confirm we have the correct post author
+    this.logger.log(`Commenter ID: ${userId}`);
+    this.logger.log(`Post Author ID (should receive the notification): ${post.author.id}`);
 
     // Create and save the comment
     const comment = this.commentsRepository.create({
       content,
       post,
-      user: { id: userId }, // Assuming only the user ID is passed
+      user: { id: userId }, // The commenter
     });
     const savedComment = await this.commentsRepository.save(comment);
 
-    // Create a notification in the database for the post's author
-    const notification = await this.notificationService.createNotificationForComment(post.author, post);
+    // Pass post.author to ensure the notification goes to the post author, not the commenter
+    const notification = await this.notificationService.createNotificationForComment(
+      post.author,  // <-- Post author, not commenter
+      post
+    );
 
-    // Emit a real-time WebSocket notification
+    // Emit a real-time WebSocket notification to the post author
     this.notificationsGateway.sendNotification(post.author.id, notification.message);
 
     return savedComment;
   }
+
 
   // Delete a comment
   async delete(commentId: number, userId: number): Promise<void> {
